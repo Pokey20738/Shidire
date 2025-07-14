@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Моё Семейное Древо (с поиском и футером)</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 0;
+            background-color: #f0f2f5;
+        }
+
+        h1 {
+            color: #1d3557;
+            font-size: 3em;
+            text-align: center;
+            margin-top: 20px;
+            margin-bottom: 30px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+            padding: 0 10px;
+        }
+
+        .search-container {
+            margin-bottom: 20px;
+            width: 100%;
+            max-width: 600px;
+            text-align: center;
+            background-color: #ffffff;
+            padding: 15px;
+            border-radius: 12px;
+            box-shadow: none;
+            position: sticky;
+            top: 10px;
+            z-index: 100;
+        }
+
+        #searchInput {
+            padding: 12px 20px;
+            border: 2px solid #d0d7de;
+            border-radius: 25px;
+            font-size: 1.1em;
+            width: calc(100% - 40px);
+            outline: none;
+            transition: border-color 0.3s ease;
+            box-sizing: border-box;
+            background-color: #ffffff;
+        }
+
+        #searchInput:focus {
+            border-color: #457b9d;
+            box-shadow: 0 0 0 3px rgba(69, 123, 157, 0.2);
+        }
+
+        .search-results {
+            margin-top: 15px;
+            max-height: 200px;
+            overflow-y: auto;
+            background-color: #ffffff;
+            border: 1px solid #d0d7de;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+            display: none;
+            padding: 10px 0;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .search-result-item {
+            padding: 10px 20px;
+            cursor: pointer;
+            text-align: left;
+            color: #1d3557;
+            font-size: 1em;
+            transition: background-color 0.2s ease, color 0.2s ease;
+        }
+
+        .search-result-item:hover {
+            background-color: #e0f2f7;
+            color: #003366;
+        }
+
+        .family-tree-image {
+            max-width: 100%;
+            height: auto;
+            display: block;
+            margin: 30px auto;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.6);
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background-color: #fefefe;
+            padding: 30px;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 600px;
+            position: relative;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .close-button {
+            color: #888;
+            position: absolute;
+            top: 15px;
+            right: 25px;
+            font-size: 32px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: color 0.2s ease-in-out;
+        }
+
+        .close-button:hover,
+        .close-button:focus {
+            color: #333;
+        }
+
+        #modal-text {
+            font-size: 1.1em;
+            line-height: 1.6;
+            color: #333;
+        }
+
+        footer {
+            margin-top: 50px;
+            padding: 20px;
+            text-align: center;
+            color: #666;
+            font-size: 0.9em;
+            background-color: #ffffff;
+            width: 100%;
+            box-shadow: 0 -2px 5px rgba(0,0,0,0.05);
+            box-sizing: border-box;
+            min-height: 50px;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>«ШЕЖИРЕ ОТ А ДО Я»</h1>
+
+    <div class="search-container">
+        <input type="text" id="searchInput" placeholder="Найти предка..." aria-label="Поиск по предкам">
+        <div id="searchResults" class="search-results"></div>
+    </div>
+    
+    <img src="rod.png" alt="Семейное древо" class="family-tree-image"> 
+
+    <div id="modal" class="modal">
+        <div class="modal-content">
+            <span class="close-button">&times;</span>
+            <p id="modal-text"></p>
+        </div>
+    </div>
+
+    <footer>
+        <p>Автор: Покей Бакон</p> <br>
+        <p>Телеграмм автора: @pokedelandia</p>
+    </footer>
+
+    <script>
+        const ancestorsData = {
+            адам: {
+                shortInfo: "Адам - первый человек на Земле, согласно библейской традиции. Его имя означает 'человек' или 'земля'.",
+                moreLink: "zadam.html" 
+            },
+            ева: {
+                shortInfo: "Ева - первая женщина, созданная из ребра Адама. Её имя означает 'жизнь' или 'дающая жизнь'.",
+                moreLink: "zeva.html"
+            },
+            ной: {
+                shortInfo: "Ной - праведник, построивший ковчег для спасения своей семьи и животных от Всемирного потопа. Он пережил Великий потоп.",
+                moreLink: "znoy.html"
+            },
+            сиф: {
+                shortInfo: "Сиф - третий сын Адама и Евы, считающийся предком Ноя и всего человечества. Его имя означает 'положенный'.",
+                moreLink: "zsif.html"
+            },
+            енос: {
+                shortInfo: "Енос - сын Сифа, внук Адама. Его имя часто ассоциируется с началом поклонения имени Господа. Он жил 905 лет.",
+                moreLink: "zenos.html"
+            },
+            каин: {
+                shortInfo: "Каин - первый сын Адама и Евы, земледелец, убивший своего брата Авеля. Был проклят Богом и стал скитальцем.",
+                moreLink: "zkain.html"
+            },
+            алаш: {
+                shortInfo: "Алаш - легендарный прародитель казахского народа, символ его единства и государственности.",
+                moreLink: "zalash.html"
+            },
+            тюрк: {
+                shortInfo: "Тюрк - мифологический предок тюркских народов, по преданию - сын Алаша.",
+                moreLink: null 
+            },
+            "жанарыс": {
+                shortInfo: "Жанарыс - один из трех сыновей Алаша, родоначальник Старшего жуза у казахов.",
+                moreLink: null
+            },
+            "карашаш-ана": { 
+                shortInfo: "Карашаш-ана - жена Жанарыса, одна из прародительниц казахского народа.",
+                moreLink: null
+            },
+            "бекарыс": {
+                shortInfo: "Бекарыс - сын Жанарыса, предок родов Старшего жуза.",
+                moreLink: null
+            },
+            "акарыс": {
+                shortInfo: "Акарыс - сын Жанарыса, предок родов Среднего жуза.",
+                moreLink: null
+            },
+            "косымкожа": {
+                shortInfo: "Косымкожа - один из предков, чье имя встречается в казахских шежире.",
+                moreLink: null
+            },
+            "есимкул-кожа": {
+                shortInfo: "Есимкул-кожа - еще один предок из казахских родословных.",
+                moreLink: null
+            },
+            "аргын": {
+                shortInfo: "Аргын - один из основателей одного из шести казахских племен под названием Аргынское племя.",
+                moreLink: "zargin.html"
+            }
+        };
+
+        const modal = document.getElementById('modal');
+        const modalText = document.getElementById('modal-text');
+        const closeButton = document.querySelector('.close-button');
+        const searchInput = document.getElementById('searchInput');
+        const searchResultsDiv = document.getElementById('searchResults');
+
+        function showAncestorInfo(ancestorId) {
+            const ancestorInfo = ancestorsData[ancestorId];
+            modalText.innerHTML = ''; 
+
+            if (ancestorInfo) {
+                const shortInfoParagraph = document.createElement('p');
+                shortInfoParagraph.textContent = ancestorInfo.shortInfo;
+                modalText.appendChild(shortInfoParagraph);
+
+                if (ancestorInfo.moreLink) {
+                    const moreLinkAnchor = document.createElement('a');
+                    moreLinkAnchor.href = ancestorInfo.moreLink;
+                    moreLinkAnchor.textContent = "Подробнее...";
+                    moreLinkAnchor.target = "_blank"; 
+                    
+                    moreLinkAnchor.style.display = 'block';
+                    moreLinkAnchor.style.marginTop = '15px';
+                    moreLinkAnchor.style.textAlign = 'right';
+                    moreLinkAnchor.style.color = '#457b9d';
+                    moreLinkAnchor.style.textDecoration = 'underline';
+                    moreLinkAnchor.style.fontWeight = 'bold';
+
+                    modalText.appendChild(moreLinkAnchor);
+                }
+                
+                modal.style.display = 'flex';
+            } else {
+                modalText.textContent = `Информация о предке "${ancestorId}" пока недоступна. Возможно, его нет в базе данных.`;
+                modal.style.display = 'flex';
+            }
+        }
+
+        searchInput.addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase().trim();
+            searchResultsDiv.innerHTML = '';
+
+            if (searchTerm.length === 0) {
+                searchResultsDiv.style.display = 'none';
+                return;
+            }
+
+            const matchingResults = [];
+            for (const id in ancestorsData) {
+                if (ancestorsData.hasOwnProperty(id)) {
+                    const name = id;
+                    const ancestorInfo = ancestorsData[id];
+
+                    if (name.includes(searchTerm) || (ancestorInfo.shortInfo && ancestorInfo.shortInfo.toLowerCase().includes(searchTerm))) {
+                        matchingResults.push({ id: name, display: name.toUpperCase() });
+                    }
+                }
+            }
+
+            if (matchingResults.length > 0) {
+                searchResultsDiv.style.display = 'block';
+                matchingResults.forEach(result => {
+                    const resultItem = document.createElement('div');
+                    resultItem.classList.add('search-result-item');
+                    resultItem.textContent = result.display;
+                    resultItem.dataset.ancestorId = result.id;
+
+                    resultItem.addEventListener('click', function() {
+                        showAncestorInfo(this.dataset.ancestorId);
+                        searchResultsDiv.style.display = 'none';
+                        searchInput.value = '';
+                    });
+                    searchResultsDiv.appendChild(resultItem);
+                });
+            } else {
+                const noResultItem = document.createElement('div');
+                noResultItem.classList.add('search-result-item');
+                noResultItem.textContent = "Ничего не найдено 😔";
+                noResultItem.style.cursor = 'default';
+                searchResultsDiv.style.display = 'block';
+                searchResultsDiv.appendChild(noResultItem);
+            }
+        });
+
+        document.addEventListener('click', function(event) {
+            if (!searchResultsDiv.contains(event.target) && event.target !== searchInput) {
+                searchResultsDiv.style.display = 'none';
+            }
+        });
+
+        closeButton.addEventListener('click', function() {
+            modal.style.display = 'none';
+        });
+
+        window.addEventListener('click', function(event) {
+            if (event.target == modal) {
+                modal.style.display = 'none';
+            }
+        });
+    </script>
+
+</body>
+</html>
