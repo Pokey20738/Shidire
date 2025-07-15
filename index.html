@@ -157,6 +157,15 @@
             box-sizing: border-box;
             min-height: 50px;
         }
+        
+    #loadingMessage {
+        text-align: center;
+        margin-top: 50px;
+        font-size: 1.5em;
+        color: #457b9d;
+        font-weight: bold;
+    }
+    
     </style>
 </head>
 <body>
@@ -167,9 +176,12 @@
         <input type="text" id="searchInput" placeholder="Найти предка..." aria-label="Поиск по предкам">
         <div id="searchResults" class="search-results"></div>
     </div>
-    
-    <img src="rod.png" alt="Семейное древо" class="family-tree-image"> 
 
+        <div id="loadingMessage" style="text-align: center; margin-top: 50px; font-size: 1.5em; color: #457b9d; font-weight: bold;">
+        Загрузка родословной... 
+    </div>
+    <img src="rod.png" alt="Семейное древо" class="family-tree-image"> 
+    
     <div id="modal" class="modal">
         <div class="modal-content">
             <span class="close-button">&times;</span>
@@ -345,6 +357,20 @@
                 modal.style.display = 'none';
             }
         });
+
+    const loadingMessage = document.getElementById('loadingMessage');
+    const familyTreeImage = document.querySelector('.family-tree-image');
+
+    if (loadingMessage && familyTreeImage) {
+        familyTreeImage.onload = function() {
+            loadingMessage.style.display = 'none'; // Скрываем сообщение
+        };
+
+        familyTreeImage.onerror = function() {
+            loadingMessage.textContent = 'Ошибка загрузки родословной.';
+        };
+    }
+    
     </script>
 
 </body>
